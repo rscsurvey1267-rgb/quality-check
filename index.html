@@ -1,0 +1,1249 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบตรวจสอบคุณภาพอ้อยในสถานีขนถ่าย 40 เครน (2569/70)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Prompt', sans-serif;
+            background-color: #f3f6f4;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #15803d; border-radius: 3px; }
+        
+        .radio-card:checked + div {
+            border-color: #16a34a;
+            background-color: #f0fdf4;
+            color: #15803d;
+            box-shadow: 0 2px 6px rgba(22, 163, 74, 0.15);
+        }
+        .radio-card-danger:checked + div {
+            border-color: #dc2626;
+            background-color: #fef2f2;
+            color: #b91c1c;
+            box-shadow: 0 2px 6px rgba(220, 38, 38, 0.15);
+        }
+        .radio-card-warn:checked + div {
+            border-color: #d97706;
+            background-color: #fffbeb;
+            color: #b45309;
+            box-shadow: 0 2px 6px rgba(217, 119, 6, 0.15);
+        }
+    </style>
+</head>
+<body class="text-slate-800 antialiased pb-20 md:pb-8">
+
+    <!-- Top Navigation Bar -->
+    <header class="bg-gradient-to-r from-emerald-800 to-green-700 text-white shadow-lg sticky top-0 z-40">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="bg-white/20 p-2 rounded-xl backdrop-blur-sm">
+                    <i class="fa-solid fa-seedling text-2xl text-lime-300"></i>
+                </div>
+                <div>
+                    <h1 class="text-base sm:text-lg font-bold leading-tight">ตรวจสอบคุณภาพอ้อย 40 เครน</h1>
+                    <p class="text-xs text-emerald-100">ฤดูหีบ 2569/70 • สุ่มตรวจก่อนยกขึ้นรถขนถ่าย</p>
+                </div>
+            </div>
+            
+            <!-- Desktop Nav & Settings -->
+            <div class="flex items-center space-x-2">
+                <div class="hidden md:flex bg-emerald-900/50 p-1 rounded-xl">
+                    <button onclick="switchTab('form')" id="nav-form-desktop" class="px-4 py-1.5 rounded-lg text-sm font-medium transition-all bg-white text-emerald-800 shadow">
+                        <i class="fa-solid fa-pen-to-square mr-1.5"></i>บันทึกการตรวจ
+                    </button>
+                    <button onclick="switchTab('dashboard')" id="nav-dash-desktop" class="px-4 py-1.5 rounded-lg text-sm font-medium transition-all text-emerald-100 hover:text-white">
+                        <i class="fa-solid fa-chart-pie mr-1.5"></i>สรุปข้อมูล
+                    </button>
+                </div>
+                <div class="hidden sm:flex items-center space-x-1.5 bg-emerald-950/50 px-3 py-1.5 rounded-xl text-xs text-emerald-200 border border-emerald-600/40" title="เชื่อมต่อฐานข้อมูลกลางเรียบร้อยแล้ว">
+                    <span class="w-2 h-2 rounded-full bg-lime-400 animate-pulse"></span>
+                    <span>เชื่อมต่อ Google Sheet</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-6xl mx-auto px-4 pt-5">
+
+        <!-- ==================== PAGE 1: บันทึกการตรวจสอบ (FORM) ==================== -->
+        <section id="section-form" class="max-w-3xl mx-auto">
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
+                <div id="form-header-bar" class="bg-emerald-50/70 border-b border-slate-100 px-5 py-4 flex items-center justify-between">
+                    <h2 id="form-title" class="font-semibold text-emerald-900 flex items-center text-base sm:text-lg">
+                        <span class="w-2 h-6 bg-emerald-600 rounded-full mr-2.5"></span>
+                        แบบฟอร์มสุ่มตรวจคุณภาพอ้อย
+                    </h2>
+                    <div class="flex items-center space-x-2">
+                        <button type="button" id="btnCancelEdit" onclick="cancelEditMode()" class="hidden text-xs bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1 rounded-full font-medium transition">
+                            <i class="fa-solid fa-xmark mr-1"></i>ยกเลิกการแก้ไข
+                        </button>
+                        <span class="text-xs bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-full font-medium">ฤดูหีบ 69/70</span>
+                    </div>
+                </div>
+
+                <form id="inspectionForm" onsubmit="handleFormSubmit(event)" class="p-5 sm:p-6 space-y-6">
+                    <input type="hidden" id="editRowIndex" value="">
+                    <input type="hidden" id="existingPlateImgUrl" value="">
+                    <input type="hidden" id="existingCaneImgUrl" value="">
+                    
+                    <!-- 1 & 2. วันที่ และ เวลา -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1.5 flex items-center justify-between">
+                                <span>1. วันที่ตรวจ <span class="text-slate-400 font-normal">(ค.ศ. dd/mm/yy)</span> <span class="text-red-500">*</span></span>
+                                <span id="displayThaiDateBadge" class="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md"></span>
+                            </label>
+                            <div class="flex items-center space-x-2">
+                                <div class="relative flex-1">
+                                    <input type="date" id="inputDatePicker" required onchange="syncFormDateFromPicker()"
+                                        class="w-full pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition">
+                                    <i class="fa-regular fa-calendar absolute left-3.5 top-3.5 text-emerald-600 pointer-events-none"></i>
+                                    <input type="hidden" id="inputDate">
+                                </div>
+                                <button type="button" onclick="setFormDateToday()"
+                                    class="px-3 py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-semibold whitespace-nowrap transition">
+                                    วันนี้
+                                </button>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1.5 flex items-center justify-between">
+                                <span>2. เวลาตรวจ <span class="text-slate-400 font-normal">(ระบบ 24 ชม.)</span> <span class="text-red-500">*</span></span>
+                                <span id="displayTime24Badge" class="text-xs font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">00:00 น.</span>
+                            </label>
+                            <div class="flex items-center space-x-2">
+                                <div class="relative flex-1">
+                                    <select id="inputHour" required onchange="syncTime24Value()"
+                                        class="w-full pl-9 pr-7 py-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none appearance-none font-semibold text-slate-800 transition">
+                                    </select>
+                                    <i class="fa-regular fa-clock absolute left-3 top-3.5 text-emerald-600 pointer-events-none"></i>
+                                    <i class="fa-solid fa-chevron-down absolute right-2.5 top-3.5 text-slate-400 text-xs pointer-events-none"></i>
+                                </div>
+                                <span class="font-bold text-slate-400">:</span>
+                                <div class="relative flex-1">
+                                    <select id="inputMinute" required onchange="syncTime24Value()"
+                                        class="w-full pl-3.5 pr-7 py-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none appearance-none font-semibold text-slate-800 transition">
+                                    </select>
+                                    <i class="fa-solid fa-chevron-down absolute right-2.5 top-3.5 text-slate-400 text-xs pointer-events-none"></i>
+                                </div>
+                                <button type="button" onclick="setFormTimeNow()"
+                                    class="px-3 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold whitespace-nowrap transition">
+                                    ตอนนี้
+                                </button>
+                                <input type="hidden" id="inputTime">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. สถานีขนถ่ายอ้อย (40 เครน) -->
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1.5">
+                            3. สถานีขนถ่ายอ้อย (เลือกจาก 40 เครน) <span class="text-red-500">*</span>
+                        </label>
+                        <div class="relative">
+                            <select id="inputCrane" required
+                                class="w-full pl-10 pr-10 py-3 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none appearance-none transition font-medium text-slate-800">
+                                <option value="" disabled selected>-- กรุณาเลือกสถานีขนถ่ายอ้อย (เครน) --</option>
+                            </select>
+                            <i class="fa-solid fa-location-dot absolute left-3.5 top-3.5 text-emerald-600"></i>
+                            <i class="fa-solid fa-chevron-down absolute right-3.5 top-3.5 text-slate-400 pointer-events-none"></i>
+                        </div>
+                    </div>
+
+                    <!-- 4. ประเภทรถ -->
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">
+                            4. ประเภทรถบรรทุกอ้อย <span class="text-red-500">*</span>
+                        </label>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                            <label class="cursor-pointer">
+                                <input type="radio" name="vehicleType" value="รถบรรทุก 6 ล้อ" class="hidden radio-card" required>
+                                <div class="border border-slate-200 rounded-xl p-3 text-center text-sm font-medium hover:bg-slate-50 transition">
+                                    <i class="fa-solid fa-truck block text-lg mb-1 opacity-75"></i>รถบรรทุก 6 ล้อ
+                                </div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="vehicleType" value="รถบรรทุก 10 ล้อ" class="hidden radio-card">
+                                <div class="border border-slate-200 rounded-xl p-3 text-center text-sm font-medium hover:bg-slate-50 transition">
+                                    <i class="fa-solid fa-truck-moving block text-lg mb-1 opacity-75"></i>รถบรรทุก 10 ล้อ
+                                </div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="vehicleType" value="รถอีแต๋น" class="hidden radio-card">
+                                <div class="border border-slate-200 rounded-xl p-3 text-center text-sm font-medium hover:bg-slate-50 transition">
+                                    <i class="fa-solid fa-tractor block text-lg mb-1 opacity-75"></i>รถอีแต๋น
+                                </div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="vehicleType" value="รถอีโก้ง" class="hidden radio-card">
+                                <div class="border border-slate-200 rounded-xl p-3 text-center text-sm font-medium hover:bg-slate-50 transition">
+                                    <i class="fa-solid fa-trailer block text-lg mb-1 opacity-75"></i>รถอีโก้ง
+                                </div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="vehicleType" value="รถกะบะ" class="hidden radio-card">
+                                <div class="border border-slate-200 rounded-xl p-3 text-center text-sm font-medium hover:bg-slate-50 transition">
+                                    <i class="fa-solid fa-truck-pickup block text-lg mb-1 opacity-75"></i>รถกะบะ
+                                </div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="vehicleType" value="อื่นๆ" class="hidden radio-card">
+                                <div class="border border-slate-200 rounded-xl p-3 text-center text-sm font-medium hover:bg-slate-50 transition">
+                                    <i class="fa-solid fa-ellipsis block text-lg mb-1 opacity-75"></i>อื่นๆ
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- 5. ทะเบียนรถ -->
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1.5">
+                            5. ทะเบียนรถ <span class="text-slate-400 font-normal">(เช่น กข1234)</span> <span class="text-red-500">*</span>
+                        </label>
+                        <div class="relative">
+                            <input type="text" id="inputPlate" required placeholder="ระบุทะเบียนรถ เช่น xx1234"
+                                class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none uppercase font-semibold tracking-wider transition">
+                            <i class="fa-solid fa-id-card absolute left-3.5 top-3.5 text-slate-400"></i>
+                        </div>
+                    </div>
+
+                    <!-- 6. ประเภทอ้อย -->
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">
+                            6. ประเภทอ้อย <span class="text-red-500">*</span>
+                        </label>
+                        <div class="grid grid-cols-2 gap-3">
+                            <label class="cursor-pointer">
+                                <input type="radio" name="caneType" value="อ้อยสด" class="hidden radio-card" required>
+                                <div class="border-2 border-slate-200 rounded-xl p-3.5 flex items-center justify-center space-x-2 font-semibold transition">
+                                    <i class="fa-solid fa-leaf text-emerald-600 text-lg"></i>
+                                    <span>อ้อยสด</span>
+                                </div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="caneType" value="อ้อยที่ถูกเผา" class="hidden radio-card-danger">
+                                <div class="border-2 border-slate-200 rounded-xl p-3.5 flex items-center justify-center space-x-2 font-semibold transition">
+                                    <i class="fa-solid fa-fire text-red-500 text-lg"></i>
+                                    <span>อ้อยที่ถูกเผา</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- 7. สิ่งปนเปื้อน -->
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">
+                            7. การประเมินสิ่งปนเปื้อน <span class="text-red-500">*</span>
+                        </label>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                            <label class="cursor-pointer">
+                                <input type="radio" name="contaminants" value="คุณภาพดี" class="hidden radio-card" required>
+                                <div class="border border-slate-200 rounded-xl p-3 text-center transition h-full flex flex-col justify-center">
+                                    <span class="font-semibold text-sm"><i class="fa-solid fa-circle-check text-emerald-600 mr-1"></i>คุณภาพดี</span>
+                                    <span class="text-xs text-slate-500 mt-0.5">สะอาด ตัดชิดโคน</span>
+                                </div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="contaminants" value="ยอดยาว/กาบใบ" class="hidden radio-card-warn">
+                                <div class="border border-slate-200 rounded-xl p-3 text-center transition h-full flex flex-col justify-center">
+                                    <span class="font-semibold text-sm"><i class="fa-solid fa-wheat-awn-circle-exclamation text-amber-500 mr-1"></i>ยอดยาว/กาบใบ</span>
+                                    <span class="text-xs text-slate-500 mt-0.5">สางใบไม่สะอาด</span>
+                                </div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="contaminants" value="ปนเปื้อน (ราก/แขนง, กรวด หิน ดิน ทราย)" class="hidden radio-card-danger">
+                                <div class="border border-slate-200 rounded-xl p-3 text-center transition h-full flex flex-col justify-center">
+                                    <span class="font-semibold text-sm"><i class="fa-solid fa-triangle-exclamation text-red-500 mr-1"></i>ปนเปื้อนหนัก</span>
+                                    <span class="text-xs text-slate-500 mt-0.5">ราก/แขนง, กรวด หิน ดิน ทราย</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- 8. Trash % Cane -->
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">
+                            8. Trash % Cane <span class="text-red-500">*</span>
+                        </label>
+                        <p class="text-xs text-slate-500 mb-2">ประเมินด้วยสายตา (เกณฑ์มาตรฐานต้องไม่เกิน 3%)</p>
+                        <div class="grid grid-cols-2 gap-3">
+                            <label class="cursor-pointer">
+                                <input type="radio" name="trashStatus" value="ไม่เกินมาตรฐาน" class="hidden radio-card" required>
+                                <div class="border-2 border-slate-200 rounded-xl p-3.5 text-center font-semibold transition">
+                                    <i class="fa-solid fa-check-double text-emerald-600 mr-1.5"></i>ไม่เกินมาตรฐาน (≤ 3%)
+                                </div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="trashStatus" value="เกินมาตรฐาน" class="hidden radio-card-danger">
+                                <div class="border-2 border-slate-200 rounded-xl p-3.5 text-center font-semibold transition">
+                                    <i class="fa-solid fa-xmark text-red-600 mr-1.5"></i>เกินมาตรฐาน (> 3%)
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- 9. ภาพประกอบ 2 ภาพ -->
+                    <div class="pt-2 border-t border-slate-100">
+                        <label class="block text-sm font-medium text-slate-700 mb-1">
+                            9. ภาพประกอบการตรวจสอบ (2 ภาพ) <span class="text-red-500">*</span>
+                        </label>
+                        <p id="edit-img-hint" class="hidden text-xs text-amber-600 mb-3">
+                            * โหมดแก้ไข: หากไม่ต้องการเปลี่ยนรูปภาพ สามารถใช้รูปเดิมได้ทันที (หรือกดเลือกภาพใหม่เพื่ออัปโหลดทับ)
+                        </p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <!-- ภาพที่ 1: ภาพทะเบียนรถ -->
+                            <div class="border-2 border-dashed border-slate-300 rounded-2xl p-4 text-center hover:border-emerald-500 transition bg-slate-50/50 relative">
+                                <input type="file" id="filePlate" accept="image/*" capture="environment" class="hidden" onchange="handleImageUpload(event, 'plate')">
+                                <div id="preview-plate-container" class="hidden mb-2">
+                                    <img id="preview-plate" src="" alt="ตัวอย่างภาพทะเบียนรถ" class="w-full h-44 object-cover rounded-xl shadow-sm">
+                                </div>
+                                <div id="placeholder-plate" class="py-6">
+                                    <div class="w-12 h-12 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mx-auto mb-2">
+                                        <i class="fa-solid fa-camera text-xl"></i>
+                                    </div>
+                                    <p class="text-sm font-semibold text-slate-700">ภาพที่ 1: ภาพทะเบียนรถ</p>
+                                    <p class="text-xs text-slate-400 mt-0.5">แตะเพื่อถ่ายภาพหรือเลือกรูป</p>
+                                </div>
+                                <button type="button" onclick="document.getElementById('filePlate').click()"
+                                    class="mt-2 w-full py-2 px-3 bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 rounded-xl text-xs font-medium shadow-sm transition">
+                                    <i class="fa-solid fa-image mr-1"></i> เลือก/ถ่ายภาพทะเบียนรถ
+                                </button>
+                            </div>
+
+                            <!-- ภาพที่ 2: ภาพอ้อย -->
+                            <div class="border-2 border-dashed border-slate-300 rounded-2xl p-4 text-center hover:border-emerald-500 transition bg-slate-50/50 relative">
+                                <input type="file" id="fileCane" accept="image/*" capture="environment" class="hidden" onchange="handleImageUpload(event, 'cane')">
+                                <div id="preview-cane-container" class="hidden mb-2">
+                                    <img id="preview-cane" src="" alt="ตัวอย่างภาพอ้อย" class="w-full h-44 object-cover rounded-xl shadow-sm">
+                                </div>
+                                <div id="placeholder-cane" class="py-6">
+                                    <div class="w-12 h-12 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mx-auto mb-2">
+                                        <i class="fa-solid fa-camera text-xl"></i>
+                                    </div>
+                                    <p class="text-sm font-semibold text-slate-700">ภาพที่ 2: ภาพคุณภาพอ้อย</p>
+                                    <p class="text-xs text-slate-400 mt-0.5">แตะเพื่อถ่ายภาพหรือเลือกรูป</p>
+                                </div>
+                                <button type="button" onclick="document.getElementById('fileCane').click()"
+                                    class="mt-2 w-full py-2 px-3 bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 rounded-xl text-xs font-medium shadow-sm transition">
+                                    <i class="fa-solid fa-image mr-1"></i> เลือก/ถ่ายภาพอ้อย
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="pt-4 flex flex-col sm:flex-row gap-3">
+                        <button type="button" id="btnCancelEditBottom" onclick="cancelEditMode()"
+                            class="hidden w-full sm:w-1/3 py-3.5 px-4 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-xl transition text-base">
+                            ยกเลิก
+                        </button>
+                        <button type="submit" id="btnSubmit"
+                            class="w-full py-3.5 px-6 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white font-semibold rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-center space-x-2 text-base">
+                            <i class="fa-solid fa-cloud-arrow-up"></i>
+                            <span id="btnSubmitText">บันทึกข้อมูลการตรวจสอบ</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <!-- ==================== PAGE 2: หน้าสรุปข้อมูล (DASHBOARD) ==================== -->
+        <section id="section-dashboard" class="hidden space-y-5">
+            
+            <!-- Filter Bar -->
+            <div class="bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-slate-200/80">
+                <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 flex-1">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">กรองตามสถานี (เครน)</label>
+                            <select id="filterCrane" onchange="applyFilters()"
+                                class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+                                <option value="ALL">แสดงทุกสถานี (ทั้ง 40 เครน)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">เลือกวันที่จากปฏิทิน (ค.ศ.)</label>
+                            <div class="flex items-center space-x-2">
+                                <input type="date" id="filterDatePicker" onchange="applyFilters()"
+                                    class="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+                                <button type="button" onclick="setFilterToday()" class="px-3 py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-semibold whitespace-nowrap transition" title="แสดงข้อมูลวันนี้">
+                                    วันนี้
+                                </button>
+                                <button type="button" onclick="clearDateFilter()" class="px-3 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-medium whitespace-nowrap transition" title="แสดงทุกวันที่">
+                                    ทั้งหมด
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="resetFilters()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-medium transition">
+                            ค่าเริ่มต้น (วันนี้)
+                        </button>
+                        <button onclick="fetchRecords()" class="px-4 py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-xl text-sm font-medium transition flex items-center">
+                            <i class="fa-solid fa-rotate mr-1.5"></i> รีเฟรช
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KPI Summary Cards -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs sm:text-sm font-medium text-slate-500">จำนวนรถสุ่มตรวจ</span>
+                        <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+                            <i class="fa-solid fa-truck"></i>
+                        </div>
+                    </div>
+                    <p id="stat-total" class="text-2xl sm:text-3xl font-bold text-slate-800 mt-2">0</p>
+                    <p class="text-xs text-slate-400 mt-1">คัน (ตามเงื่อนไขที่กรอง)</p>
+                </div>
+
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs sm:text-sm font-medium text-slate-500">อ้อยสด / อ้อยเผา</span>
+                        <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                            <i class="fa-solid fa-leaf"></i>
+                        </div>
+                    </div>
+                    <div class="flex items-baseline space-x-2 mt-2">
+                        <span id="stat-fresh" class="text-2xl sm:text-3xl font-bold text-emerald-600">0</span>
+                        <span class="text-slate-300">/</span>
+                        <span id="stat-burnt" class="text-xl sm:text-2xl font-bold text-red-500">0</span>
+                    </div>
+                    <p id="stat-fresh-pct" class="text-xs text-slate-500 mt-1">อ้อยสด 0%</p>
+                </div>
+
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs sm:text-sm font-medium text-slate-500">Trash เกินมาตรฐาน</span>
+                        <div class="w-8 h-8 rounded-lg bg-red-50 text-red-600 flex items-center justify-center">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                        </div>
+                    </div>
+                    <p id="stat-trash-over" class="text-2xl sm:text-3xl font-bold text-red-600 mt-2">0</p>
+                    <p id="stat-trash-pct" class="text-xs text-slate-500 mt-1">คิดเป็น 0% (> 3%)</p>
+                </div>
+
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs sm:text-sm font-medium text-slate-500">อ้อยคุณภาพดี</span>
+                        <div class="w-8 h-8 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center">
+                            <i class="fa-solid fa-award"></i>
+                        </div>
+                    </div>
+                    <p id="stat-good" class="text-2xl sm:text-3xl font-bold text-teal-600 mt-2">0</p>
+                    <p class="text-xs text-slate-400 mt-1">สะอาด ไม่พบสิ่งปนเปื้อน</p>
+                </div>
+            </div>
+
+            <!-- Records Table / Card List -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
+                <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+                    <div class="flex items-center space-x-2">
+                        <h3 class="font-semibold text-slate-800">รายการบันทึกผลการตรวจสอบ</h3>
+                        <span id="active-date-label" class="text-xs bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-0.5 rounded-full font-medium"></span>
+                    </div>
+                    <span id="record-count-badge" class="text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full font-medium">0 รายการ</span>
+                </div>
+
+                <!-- Desktop Table View -->
+                <div class="hidden md:block overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50 text-slate-600 text-xs uppercase border-b border-slate-200">
+                                <th class="py-3.5 px-4 font-semibold">วัน/เวลา</th>
+                                <th class="py-3.5 px-4 font-semibold">สถานี (เครน)</th>
+                                <th class="py-3.5 px-4 font-semibold">รถ / ทะเบียน</th>
+                                <th class="py-3.5 px-4 font-semibold">ประเภทอ้อย</th>
+                                <th class="py-3.5 px-4 font-semibold">สิ่งปนเปื้อน</th>
+                                <th class="py-3.5 px-4 font-semibold">Trash %</th>
+                                <th class="py-3.5 px-4 font-semibold text-center">ภาพประกอบ</th>
+                                <th class="py-3.5 px-4 font-semibold text-center">จัดการ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-body" class="divide-y divide-slate-100 text-sm">
+                            <!-- Rows injected by JS -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Mobile Card View -->
+                <div id="mobile-cards-body" class="md:hidden divide-y divide-slate-100">
+                    <!-- Cards injected by JS -->
+                </div>
+
+                <!-- Empty State -->
+                <div id="empty-state" class="hidden py-12 text-center px-4">
+                    <div class="w-16 h-16 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <i class="fa-solid fa-folder-open text-2xl"></i>
+                    </div>
+                    <p class="text-slate-600 font-medium">ไม่พบข้อมูลการตรวจสอบ</p>
+                    <p class="text-xs text-slate-400 mt-1">ลองเปลี่ยนตัวกรองหรือเพิ่มข้อมูลการตรวจสอบใหม่</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Mobile Bottom Navigation Bar -->
+    <nav class="md:hidden fixed bottom-0 inset-x-0 bg-white border-t border-slate-200 flex justify-around py-2 z-40 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
+        <button onclick="switchTab('form')" id="nav-form-mobile" class="flex flex-col items-center py-1 px-4 text-emerald-700 font-semibold">
+            <i class="fa-solid fa-pen-to-square text-lg mb-0.5"></i>
+            <span class="text-xs">บันทึกการตรวจ</span>
+        </button>
+        <button onclick="switchTab('dashboard')" id="nav-dash-mobile" class="flex flex-col items-center py-1 px-4 text-slate-400 font-medium">
+            <i class="fa-solid fa-chart-pie text-lg mb-0.5"></i>
+            <span class="text-xs">สรุปข้อมูล</span>
+        </button>
+    </nav>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl p-6 max-w-xs w-full text-center shadow-xl">
+            <div class="w-12 h-12 border-4 border-emerald-200 border-t-emerald-600 rounded-full animate-spin mx-auto mb-4"></div>
+            <p id="loadingText" class="font-semibold text-slate-800">กำลังบันทึกข้อมูลและอัปโหลดรูปภาพ...</p>
+            <p class="text-xs text-slate-500 mt-1">กรุณารอสักครู่ อย่าปิดหน้าต่างนี้</p>
+        </div>
+    </div>
+
+    <!-- Custom Alert / Message Modal -->
+    <div id="messageModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl p-6 max-w-sm w-full text-center shadow-xl transform transition-all">
+            <div id="modalIcon" class="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl"></div>
+            <h3 id="modalTitle" class="text-lg font-bold text-slate-800">แจ้งเตือน</h3>
+            <p id="modalMessage" class="text-sm text-slate-600 mt-1.5"></p>
+            <button onclick="closeMessageModal()" class="mt-5 w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-xl transition">
+                ตกลง
+            </button>
+        </div>
+    </div>
+
+    <!-- Custom Confirm Delete Modal -->
+    <div id="deleteConfirmModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl p-6 max-w-sm w-full text-center shadow-xl">
+            <div class="w-14 h-14 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto mb-3 text-2xl">
+                <i class="fa-solid fa-trash-can"></i>
+            </div>
+            <h3 class="text-lg font-bold text-slate-800">ยืนยันการลบข้อมูล?</h3>
+            <p id="deleteConfirmText" class="text-sm text-slate-600 mt-1.5">ข้อมูลนี้จะถูกลบออกจาก Google Sheet อย่างถาวร</p>
+            <div class="grid grid-cols-2 gap-3 mt-5">
+                <button onclick="closeDeleteModal()" class="py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-xl transition">
+                    ยกเลิก
+                </button>
+                <button onclick="confirmDeleteRecord()" class="py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium rounded-xl transition">
+                    ยืนยันลบข้อมูล
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // URL ของ Google Apps Script กลาง (ใช้งานร่วมกันทุกอุปกรณ์)
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwrN3IbmSK5qW8KsjsemIzKk91JKunQkCVcGB8Kwk5BlX_L0xr1_rZcTgTJVzxJHRN_/exec';
+
+        // รายชื่อเครนทั้งหมด 40 สถานี
+        const CRANE_LIST = [
+            "1.หนองหัวฟาน", "2.หินกอง", "3.เครนห้วยต้อน", "4.เครนภูแลนคา",
+            "5.เครนสระสี่เหลี่ยม1", "6.เครนหนองบัวแดง", "7.เครนนาเสียว", "8.เครนบ้านเขว้า1",
+            "9.เครนทำนบพัฒนา", "10.เครนขามสะแกแสง1", "11.เครนขามสะแกแสง2", "12.เครนวังชมภู",
+            "13.เครนหนองบัวระเหว", "14.เครนหนองหอย", "15.เครนบ้านค่าย1", "16.เครนบ้านเดื่อ",
+            "17.เครนบ้านเขว้า2", "18.เครนบ้านเขว้า3", "19.เครนหนองแวง", "20.เครนห้วยไร่",
+            "21.เครนหนองโคบาล", "22.เครนหนองพลวง", "23.เครนหนองบัวระเหว2", "24.เครนเนินสง่า",
+            "25.เครนบ้านค่าย2", "26.เครนดอนหัน", "27.เครนบ้านปรางค์", "28.เครนดอนทอง(บ้านเหลื่อม2)",
+            "29.เครนวังโพธิ์(บ้านเหลื่อม1)", "30.เครนรกฟ้า", "31.เครนสระสี่เหลี่ยม2", "32.เครนซับใหญ่",
+            "33.เครนคูเมือง", "34.เครนท่าหินโงม", "35.เครนทำนบ2", "36.เครนโนนตาลเสี้ยน",
+            "37.เครนหนองม่วงช่างพิมพ์", "38.เครนภูแลนคา2", "39.เครนบ้านเขว้า4", "40.เครนห้วยไห"
+        ];
+
+        // State Variables
+        let plateImageBase64 = '';
+        let caneImageBase64 = '';
+        let allRecords = [];
+        let pendingDeleteRowIndex = null;
+
+        // Initialize App
+        window.onload = function() {
+            populateCraneDropdowns();
+            populateTime24Dropdowns();
+            setDefaultDateTime();
+            setFilterToday(false); // ตั้งค่าปฏิทินหน้าสรุปผลเป็นวันปัจจุบันเริ่มต้น
+            fetchRecords();
+        };
+
+        // เติมตัวเลือกเวลาแบบ 24 ชั่วโมง (00-23 น. และ 00-59 นาที)
+        function populateTime24Dropdowns() {
+            const hourSelect = document.getElementById('inputHour');
+            const minSelect = document.getElementById('inputMinute');
+            hourSelect.innerHTML = '';
+            minSelect.innerHTML = '';
+
+            for (let h = 0; h < 24; h++) {
+                const val = String(h).padStart(2, '0');
+                const opt = document.createElement('option');
+                opt.value = val;
+                opt.textContent = `${val} น.`;
+                hourSelect.appendChild(opt);
+            }
+
+            for (let m = 0; m < 60; m++) {
+                const val = String(m).padStart(2, '0');
+                const opt = document.createElement('option');
+                opt.value = val;
+                opt.textContent = `${val} นาที`;
+                minSelect.appendChild(opt);
+            }
+        }
+
+        // เติมรายชื่อ 40 เครนลงใน Dropdown ทั้งหน้าฟอร์มและหน้าตัวกรอง
+        function populateCraneDropdowns() {
+            const formSelect = document.getElementById('inputCrane');
+            const filterSelect = document.getElementById('filterCrane');
+            
+            CRANE_LIST.forEach(crane => {
+                const opt1 = document.createElement('option');
+                opt1.value = crane;
+                opt1.textContent = crane;
+                formSelect.appendChild(opt1);
+
+                const opt2 = document.createElement('option');
+                opt2.value = crane;
+                opt2.textContent = crane;
+                filterSelect.appendChild(opt2);
+            });
+        }
+
+        // ตั้งค่าวันที่ (dd/mm/yy ค.ศ.) และเวลาปัจจุบันอัตโนมัติ
+        function setDefaultDateTime() {
+            setFormDateToday();
+            setFormTimeNow();
+        }
+
+        // ตั้งค่าเวลาปัจจุบันในรูปแบบ 24 ชั่วโมง
+        function setFormTimeNow() {
+            const now = new Date();
+            const hh = String(now.getHours()).padStart(2, '0');
+            const min = String(now.getMinutes()).padStart(2, '0');
+            document.getElementById('inputHour').value = hh;
+            document.getElementById('inputMinute').value = min;
+            syncTime24Value();
+        }
+
+        // อัปเดตค่าเวลา 24 ชม. ลงช่องซ่อนและป้ายแสดงผล
+        function syncTime24Value() {
+            const hh = document.getElementById('inputHour').value || '00';
+            const min = document.getElementById('inputMinute').value || '00';
+            const timeStr = `${hh}:${min}`;
+            document.getElementById('inputTime').value = timeStr;
+            document.getElementById('displayTime24Badge').textContent = `${timeStr} น.`;
+        }
+
+        // ตั้งค่าปฏิทินหน้าฟอร์มเป็นวันปัจจุบัน (ค.ศ.)
+        function setFormDateToday() {
+            const now = new Date();
+            const yyyy = now.getFullYear();
+            const mm = String(now.getMonth() + 1).padStart(2, '0');
+            const dd = String(now.getDate()).padStart(2, '0');
+            document.getElementById('inputDatePicker').value = `${yyyy}-${mm}-${dd}`;
+            syncFormDateFromPicker();
+        }
+
+        // อัปเดตค่า dd/mm/yy (ค.ศ.) จากปฏิทินหน้าฟอร์ม
+        function syncFormDateFromPicker() {
+            const pickerVal = document.getElementById('inputDatePicker').value;
+            const adShortDate = formatPickerToADShort(pickerVal);
+            document.getElementById('inputDate').value = adShortDate;
+            document.getElementById('displayThaiDateBadge').textContent = adShortDate ? `ค.ศ. ${adShortDate}` : '';
+        }
+
+        // ฟังก์ชันจัดรูปแบบวันที่ที่ดึงมาจาก Google Sheet (รองรับทั้งข้อความ dd/mm/yy และ ISO Date Object)
+        function normalizeSheetDate(rawVal) {
+            if (!rawVal) return '';
+            const str = String(rawVal).trim();
+            // กรณี Google Sheet ส่งมาเป็น ISO String (เช่น 2026-11-17T17:00:00.000Z)
+            if (str.includes('T') && !isNaN(Date.parse(str))) {
+                const d = new Date(str);
+                const dd = String(d.getDate()).padStart(2, '0');
+                const mm = String(d.getMonth() + 1).padStart(2, '0');
+                const yy = String(d.getFullYear()).slice(-2);
+                return `${dd}/${mm}/${yy}`;
+            }
+            // กรณีเป็นรูปแบบ dd/mm/yyyy หรือ dd/mm/yy
+            if (str.includes('/')) {
+                const parts = str.split('/');
+                if (parts.length === 3) {
+                    const dd = parts[0].padStart(2, '0');
+                    const mm = parts[1].padStart(2, '0');
+                    const yy = parts[2].slice(-2).padStart(2, '0');
+                    return `${dd}/${mm}/${yy}`;
+                }
+            }
+            return str;
+        }
+
+        // ฟังก์ชันจัดรูปแบบเวลาที่ดึงมาจาก Google Sheet (รองรับทั้งข้อความและ ISO Date Object)
+        function normalizeSheetTime(rawVal) {
+            if (!rawVal) return '';
+            const str = String(rawVal).trim();
+            if (str.includes('T') && !isNaN(Date.parse(str))) {
+                const d = new Date(str);
+                const hh = String(d.getHours()).padStart(2, '0');
+                const min = String(d.getMinutes()).padStart(2, '0');
+                return `${hh}:${min} น.`;
+            }
+            return str;
+        }
+
+        // แปลงวันที่รูปแบบ dd/mm/yy (รองรับทั้ง ค.ศ. และ พ.ศ. เก่า) กลับเป็น YYYY-MM-DD สำหรับปฏิทิน
+        function parseShortDateToPicker(dateStr) {
+            if (!dateStr || !String(dateStr).includes('/')) return '';
+            const parts = String(dateStr).trim().split('/');
+            if (parts.length !== 3) return '';
+            const dd = parts[0].padStart(2, '0');
+            const mm = parts[1].padStart(2, '0');
+            const yyShort = parseInt(parts[2], 10);
+            // หากเลขปี >= 60 (เช่น 69, 70) ให้แปลงจาก พ.ศ. เป็น ค.ศ. แต่หากน้อยกว่า (เช่น 26, 27) เป็น ค.ศ. 20xx
+            const fullGregorianYear = yyShort >= 60 ? (2500 + yyShort) - 543 : (2000 + yyShort);
+            return `${fullGregorianYear}-${mm}-${dd}`;
+        }
+
+        // แปลงวันที่จากปฏิทิน (YYYY-MM-DD) เป็นรูปแบบ dd/mm/yy (ค.ศ.)
+        function formatPickerToADShort(yyyy_mm_dd) {
+            if (!yyyy_mm_dd) return '';
+            const [yyyy, mm, dd] = yyyy_mm_dd.split('-');
+            const adYearShort = String(yyyy).slice(-2);
+            return `${dd}/${mm}/${adYearShort}`;
+        }
+
+        // แปลงวันที่จากปฏิทิน (YYYY-MM-DD) เป็นรูปแบบ dd/mm/yy (พ.ศ.) เผื่อเทียบข้อมูลเก่า
+        function formatPickerToBEShort(yyyy_mm_dd) {
+            if (!yyyy_mm_dd) return '';
+            const [yyyy, mm, dd] = yyyy_mm_dd.split('-');
+            const beYearShort = String(parseInt(yyyy, 10) + 543).slice(-2);
+            return `${dd}/${mm}/${beYearShort}`;
+        }
+
+        // ตั้งค่าปฏิทินตัวกรองเป็นวันปัจจุบัน
+        function setFilterToday(shouldApply = true) {
+            const now = new Date();
+            const yyyy = now.getFullYear();
+            const mm = String(now.getMonth() + 1).padStart(2, '0');
+            const dd = String(now.getDate()).padStart(2, '0');
+            document.getElementById('filterDatePicker').value = `${yyyy}-${mm}-${dd}`;
+            if (shouldApply) applyFilters();
+        }
+
+        // ล้างตัวกรองวันที่ (แสดงทุกวันที่)
+        function clearDateFilter() {
+            document.getElementById('filterDatePicker').value = '';
+            applyFilters();
+        }
+
+        // สลับหน้าจอ (หน้าบันทึก / หน้าสรุปข้อมูล)
+        function switchTab(tab) {
+            const secForm = document.getElementById('section-form');
+            const secDash = document.getElementById('section-dashboard');
+            
+            const navFormDesk = document.getElementById('nav-form-desktop');
+            const navDashDesk = document.getElementById('nav-dash-desktop');
+            const navFormMob = document.getElementById('nav-form-mobile');
+            const navDashMob = document.getElementById('nav-dash-mobile');
+
+            if (tab === 'form') {
+                secForm.classList.remove('hidden');
+                secDash.classList.add('hidden');
+                
+                navFormDesk.className = "px-4 py-1.5 rounded-lg text-sm font-medium transition-all bg-white text-emerald-800 shadow";
+                navDashDesk.className = "px-4 py-1.5 rounded-lg text-sm font-medium transition-all text-emerald-100 hover:text-white";
+                
+                navFormMob.className = "flex flex-col items-center py-1 px-4 text-emerald-700 font-semibold";
+                navDashMob.className = "flex flex-col items-center py-1 px-4 text-slate-400 font-medium";
+            } else {
+                secForm.classList.add('hidden');
+                secDash.classList.remove('hidden');
+                
+                navDashDesk.className = "px-4 py-1.5 rounded-lg text-sm font-medium transition-all bg-white text-emerald-800 shadow";
+                navFormDesk.className = "px-4 py-1.5 rounded-lg text-sm font-medium transition-all text-emerald-100 hover:text-white";
+                
+                navDashMob.className = "flex flex-col items-center py-1 px-4 text-emerald-700 font-semibold";
+                navFormMob.className = "flex flex-col items-center py-1 px-4 text-slate-400 font-medium";
+
+                fetchRecords();
+            }
+        }
+
+        // บีบอัดรูปภาพก่อนอัปโหลด
+        function handleImageUpload(event, type) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 1024;
+                    const MAX_HEIGHT = 1024;
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > height) {
+                        if (width > MAX_WIDTH) {
+                            height *= MAX_WIDTH / width;
+                            width = MAX_WIDTH;
+                        }
+                    } else {
+                        if (height > MAX_HEIGHT) {
+                            width *= MAX_HEIGHT / height;
+                            height = MAX_HEIGHT;
+                        }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    
+                    const compressedBase64 = canvas.toDataURL('image/jpeg', 0.75);
+                    
+                    if (type === 'plate') {
+                        plateImageBase64 = compressedBase64;
+                        document.getElementById('preview-plate').src = compressedBase64;
+                        document.getElementById('preview-plate-container').classList.remove('hidden');
+                        document.getElementById('placeholder-plate').classList.add('hidden');
+                    } else {
+                        caneImageBase64 = compressedBase64;
+                        document.getElementById('preview-cane').src = compressedBase64;
+                        document.getElementById('preview-cane-container').classList.remove('hidden');
+                        document.getElementById('placeholder-cane').classList.add('hidden');
+                    }
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // บันทึกหรือแก้ไขข้อมูลฟอร์มไปยัง Google Sheet จริง
+        async function handleFormSubmit(event) {
+            event.preventDefault();
+
+            const editRowIndex = document.getElementById('editRowIndex').value;
+            const isEditMode = editRowIndex !== '';
+
+            // กรณีสร้างใหม่ บังคับต้องมีรูปทั้ง 2 ภาพ
+            if (!isEditMode && (!plateImageBase64 || !caneImageBase64)) {
+                showMessage('warning', 'กรุณาแนบรูปภาพให้ครบ', 'กรุณาถ่ายหรือเลือกรูปภาพทะเบียนรถ และภาพคุณภาพอ้อยให้ครบทั้ง 2 ภาพ');
+                return;
+            }
+
+            const payload = {
+                action: isEditMode ? 'update' : 'create',
+                rowIndex: editRowIndex,
+                date: document.getElementById('inputDate').value.trim(),
+                time: document.getElementById('inputTime').value,
+                crane: document.getElementById('inputCrane').value,
+                vehicleType: document.querySelector('input[name="vehicleType"]:checked').value,
+                licensePlate: document.getElementById('inputPlate').value.trim().toUpperCase(),
+                caneType: document.querySelector('input[name="caneType"]:checked').value,
+                contaminants: document.querySelector('input[name="contaminants"]:checked').value,
+                trashStatus: document.querySelector('input[name="trashStatus"]:checked').value,
+                plateImage: plateImageBase64,
+                caneImage: caneImageBase64,
+                existingPlateImgUrl: document.getElementById('existingPlateImgUrl').value,
+                existingCaneImgUrl: document.getElementById('existingCaneImgUrl').value
+            };
+
+            showLoading(isEditMode ? 'กำลังบันทึกการแก้ไขข้อมูล...' : 'กำลังบันทึกข้อมูลและอัปโหลดรูปภาพลง Drive...');
+
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+                
+                hideLoading();
+                if (result.status === 'success') {
+                    resetForm();
+                    await fetchRecords();
+                    if (isEditMode) {
+                        switchTab('dashboard');
+                        showMessage('success', 'แก้ไขข้อมูลสำเร็จ!', 'อัปเดตข้อมูลใน Google Sheet เรียบร้อยแล้ว');
+                    } else {
+                        showMessage('success', 'บันทึกข้อมูลสำเร็จ!', `บันทึกข้อมูลลง Google Sheet และเก็บรูปในโฟลเดอร์ "${payload.crane}" เรียบร้อยแล้ว`);
+                    }
+                } else {
+                    showMessage('error', 'เกิดข้อผิดพลาด', result.message || 'ไม่สามารถบันทึกข้อมูลได้');
+                }
+            } catch (error) {
+                hideLoading();
+                showMessage('error', 'การเชื่อมต่อขัดข้อง', 'ไม่สามารถติดต่อ Google Apps Script ได้ กรุณาตรวจสอบอินเทอร์เน็ตแล้วลองใหม่อีกครั้ง');
+            }
+        }
+
+        // เปิดโหมดแก้ไขข้อมูล
+        function startEditRecord(rowIndex) {
+            const record = allRecords.find(r => r.rowIndex === rowIndex);
+            if (!record) return;
+
+            // สลับไปหน้าฟอร์ม
+            switchTab('form');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            // ตั้งค่า UI โหมดแก้ไข
+            document.getElementById('editRowIndex').value = record.rowIndex;
+            document.getElementById('existingPlateImgUrl').value = record.plateImgUrl || '';
+            document.getElementById('existingCaneImgUrl').value = record.caneImgUrl || '';
+            
+            document.getElementById('form-header-bar').className = 'bg-amber-50 border-b border-amber-200 px-5 py-4 flex items-center justify-between';
+            document.getElementById('form-title').innerHTML = `<span class="w-2 h-6 bg-amber-500 rounded-full mr-2.5"></span>แก้ไขข้อมูลการตรวจ (${record.licensePlate})`;
+            document.getElementById('btnCancelEdit').classList.remove('hidden');
+            document.getElementById('btnCancelEditBottom').classList.remove('hidden');
+            document.getElementById('btnSubmitText').textContent = 'บันทึกการแก้ไขข้อมูล';
+            document.getElementById('btnSubmit').className = 'w-full py-3.5 px-6 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-center space-x-2 text-base';
+            document.getElementById('edit-img-hint').classList.remove('hidden');
+
+            // เติมข้อมูลเดิมลงฟอร์ม
+            const pickerDate = parseShortDateToPicker(record.date);
+            if (pickerDate) {
+                document.getElementById('inputDatePicker').value = pickerDate;
+            }
+            document.getElementById('inputDate').value = record.date;
+            document.getElementById('displayThaiDateBadge').textContent = `ค.ศ. ${record.date}`;
+
+            const cleanTime = String(record.time || '00:00').replace(' น.', '').trim();
+            const [hPart, mPart] = cleanTime.split(':');
+            if (hPart && mPart) {
+                document.getElementById('inputHour').value = hPart.padStart(2, '0');
+                document.getElementById('inputMinute').value = mPart.padStart(2, '0');
+                syncTime24Value();
+            }
+
+            document.getElementById('inputCrane').value = record.crane;
+            document.getElementById('inputPlate').value = record.licensePlate;
+
+            const vRadio = document.querySelector(`input[name="vehicleType"][value="${record.vehicleType}"]`);
+            if (vRadio) vRadio.checked = true;
+
+            const cRadio = document.querySelector(`input[name="caneType"][value="${record.caneType}"]`);
+            if (cRadio) cRadio.checked = true;
+
+            const contRadio = document.querySelector(`input[name="contaminants"][value="${record.contaminants}"]`);
+            if (contRadio) contRadio.checked = true;
+
+            const tRadio = document.querySelector(`input[name="trashStatus"][value="${record.trashStatus}"]`);
+            if (tRadio) tRadio.checked = true;
+
+            // รีเซ็ตตัวแปรรูปใหม่ (ผู้ใช้เลือกอัปโหลดใหม่ได้ถ้าต้องการ)
+            plateImageBase64 = '';
+            caneImageBase64 = '';
+            document.getElementById('preview-plate-container').classList.add('hidden');
+            document.getElementById('placeholder-plate').classList.remove('hidden');
+            document.getElementById('preview-cane-container').classList.add('hidden');
+            document.getElementById('placeholder-cane').classList.remove('hidden');
+        }
+
+        // ยกเลิกโหมดแก้ไข
+        function cancelEditMode() {
+            resetForm();
+            switchTab('dashboard');
+        }
+
+        // รีเซ็ตฟอร์มกลับสู่โหมดบันทึกใหม่
+        function resetForm() {
+            const currentCrane = document.getElementById('inputCrane').value;
+            document.getElementById('inspectionForm').reset();
+            document.getElementById('editRowIndex').value = '';
+            document.getElementById('existingPlateImgUrl').value = '';
+            document.getElementById('existingCaneImgUrl').value = '';
+
+            // คืนค่า UI เป็นโหมดบันทึกใหม่
+            document.getElementById('form-header-bar').className = 'bg-emerald-50/70 border-b border-slate-100 px-5 py-4 flex items-center justify-between';
+            document.getElementById('form-title').innerHTML = '<span class="w-2 h-6 bg-emerald-600 rounded-full mr-2.5"></span>แบบฟอร์มสุ่มตรวจคุณภาพอ้อย';
+            document.getElementById('btnCancelEdit').classList.add('hidden');
+            document.getElementById('btnCancelEditBottom').classList.add('hidden');
+            document.getElementById('btnSubmitText').textContent = 'บันทึกข้อมูลการตรวจสอบ';
+            document.getElementById('btnSubmit').className = 'w-full py-3.5 px-6 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white font-semibold rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-center space-x-2 text-base';
+            document.getElementById('edit-img-hint').classList.add('hidden');
+
+            if (currentCrane) document.getElementById('inputCrane').value = currentCrane;
+            setDefaultDateTime();
+            
+            plateImageBase64 = '';
+            caneImageBase64 = '';
+            document.getElementById('preview-plate-container').classList.add('hidden');
+            document.getElementById('placeholder-plate').classList.remove('hidden');
+            document.getElementById('preview-cane-container').classList.add('hidden');
+            document.getElementById('placeholder-cane').classList.remove('hidden');
+        }
+
+        // เปิดหน้าต่างยืนยันการลบ
+        function promptDeleteRecord(rowIndex, plate, crane) {
+            pendingDeleteRowIndex = rowIndex;
+            document.getElementById('deleteConfirmText').textContent = `ต้องการลบข้อมูลรถทะเบียน "${plate}" (${crane}) ออกจาก Google Sheet ใช่หรือไม่?`;
+            document.getElementById('deleteConfirmModal').classList.remove('hidden');
+        }
+
+        function closeDeleteModal() {
+            pendingDeleteRowIndex = null;
+            document.getElementById('deleteConfirmModal').classList.add('hidden');
+        }
+
+        // ยืนยันลบข้อมูลใน Google Sheet จริง
+        async function confirmDeleteRecord() {
+            if (!pendingDeleteRowIndex) return;
+            const targetRow = pendingDeleteRowIndex;
+            closeDeleteModal();
+            showLoading('กำลังลบข้อมูลออกจาก Google Sheet...');
+
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'delete',
+                        rowIndex: targetRow
+                    })
+                });
+                const result = await response.json();
+                hideLoading();
+
+                if (result.status === 'success') {
+                    await fetchRecords();
+                    showMessage('success', 'ลบข้อมูลเรียบร้อย', 'ลบรายการออกจาก Google Sheet เรียบร้อยแล้ว');
+                } else {
+                    showMessage('error', 'ลบข้อมูลไม่สำเร็จ', result.message || 'เกิดข้อผิดพลาดในการลบข้อมูล');
+                }
+            } catch (error) {
+                hideLoading();
+                showMessage('error', 'การเชื่อมต่อขัดข้อง', 'ไม่สามารถติดต่อ Google Sheet ได้');
+            }
+        }
+
+        // ดึงข้อมูลจริงจาก Google Sheet มาแสดงหน้า Dashboard
+        async function fetchRecords() {
+            showLoading('กำลังดึงข้อมูลล่าสุดจาก Google Sheet...');
+            try {
+                // เพิ่มพารามิเตอร์ป้องกันเบราว์เซอร์จำค่าแคชเก่า และระบุ redirect: 'follow'
+                const fetchUrl = `${SCRIPT_URL}?action=read&t=${Date.now()}`;
+                const response = await fetch(fetchUrl, {
+                    method: 'GET',
+                    redirect: 'follow'
+                });
+                const result = await response.json();
+                hideLoading();
+                if (result.status === 'success') {
+                    // แปลงวันที่และเวลาของทุกแถวให้เป็นรูปแบบมาตรฐาน dd/mm/yy และ HH:mm น.
+                    allRecords = (result.data || []).map(row => ({
+                        ...row,
+                        date: normalizeSheetDate(row.date),
+                        time: normalizeSheetTime(row.time)
+                    }));
+                    applyFilters();
+                } else {
+                    showMessage('error', 'โหลดข้อมูลไม่สำเร็จ', result.message || 'ไม่สามารถดึงข้อมูลจาก Google Sheet ได้');
+                }
+            } catch (error) {
+                hideLoading();
+                console.error('Fetch error:', error);
+                showMessage('error', 'การเชื่อมต่อขัดข้อง', 'ไม่สามารถดึงข้อมูลจาก Google Sheet ได้ กรุณาตรวจสอบอินเทอร์เน็ตหรือสิทธิ์การเข้าถึง Web App');
+            }
+        }
+
+        // กรองข้อมูลและคำนวณสถิติ
+        function applyFilters() {
+            const selectedCrane = document.getElementById('filterCrane').value;
+            const pickerVal = document.getElementById('filterDatePicker').value;
+            const targetADDate = formatPickerToADShort(pickerVal);
+            const targetBEDate = formatPickerToBEShort(pickerVal);
+
+            // อัปเดตป้ายบอกวันที่กำลังแสดงผล
+            const dateLabel = document.getElementById('active-date-label');
+            if (targetADDate) {
+                dateLabel.textContent = `วันที่ ${targetADDate} (ค.ศ.)`;
+            } else {
+                dateLabel.textContent = 'ทุกวันที่';
+            }
+
+            const filtered = allRecords.filter(item => {
+                const matchCrane = (selectedCrane === 'ALL') || (item.crane === selectedCrane);
+                const itemDateStr = String(item.date).trim();
+                const matchDate = (!targetADDate) || (itemDateStr === targetADDate) || (itemDateStr === targetBEDate);
+                return matchCrane && matchDate;
+            });
+
+            renderStats(filtered);
+            renderTableAndCards(filtered);
+        }
+
+        function resetFilters() {
+            document.getElementById('filterCrane').value = 'ALL';
+            setFilterToday(true);
+        }
+
+        // แสดงผลตัวเลข KPI
+        function renderStats(data) {
+            const total = data.length;
+            const fresh = data.filter(d => d.caneType === 'อ้อยสด').length;
+            const burnt = data.filter(d => d.caneType === 'อ้อยที่ถูกเผา').length;
+            const trashOver = data.filter(d => d.trashStatus === 'เกินมาตรฐาน').length;
+            const good = data.filter(d => d.contaminants === 'คุณภาพดี').length;
+
+            const freshPct = total > 0 ? Math.round((fresh / total) * 100) : 0;
+            const trashPct = total > 0 ? Math.round((trashOver / total) * 100) : 0;
+
+            document.getElementById('stat-total').textContent = total.toLocaleString();
+            document.getElementById('stat-fresh').textContent = fresh.toLocaleString();
+            document.getElementById('stat-burnt').textContent = burnt.toLocaleString();
+            document.getElementById('stat-fresh-pct').textContent = `อ้อยสด ${freshPct}%`;
+            document.getElementById('stat-trash-over').textContent = trashOver.toLocaleString();
+            document.getElementById('stat-trash-pct').textContent = `คิดเป็น ${trashPct}% (> 3%)`;
+            document.getElementById('stat-good').textContent = good.toLocaleString();
+            document.getElementById('record-count-badge').textContent = `${total} รายการ`;
+        }
+
+        // แสดงผลตาราง (Desktop) และการ์ด (Mobile) พร้อมปุ่มแก้ไขและลบ
+        function renderTableAndCards(data) {
+            const tbody = document.getElementById('table-body');
+            const mobileBody = document.getElementById('mobile-cards-body');
+            const emptyState = document.getElementById('empty-state');
+
+            tbody.innerHTML = '';
+            mobileBody.innerHTML = '';
+
+            if (data.length === 0) {
+                emptyState.classList.remove('hidden');
+                return;
+            }
+            emptyState.classList.add('hidden');
+
+            data.forEach(item => {
+                const isFresh = item.caneType === 'อ้อยสด';
+                const caneBadge = isFresh
+                    ? `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800"><i class="fa-solid fa-leaf mr-1"></i>อ้อยสด</span>`
+                    : `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800"><i class="fa-solid fa-fire mr-1"></i>อ้อยที่ถูกเผา</span>`;
+
+                const isTrashOk = item.trashStatus === 'ไม่เกินมาตรฐาน';
+                const trashBadge = isTrashOk
+                    ? `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-teal-50 text-teal-700 border border-teal-200">≤ 3% ปกติ</span>`
+                    : `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-700 border border-red-200">> 3% เกินมาตรฐาน</span>`;
+
+                const imgLinks = (item.plateImgUrl || item.caneImgUrl) ? `
+                    <div class="flex items-center justify-center space-x-1.5">
+                        ${item.plateImgUrl ? `<a href="${item.plateImgUrl}" target="_blank" class="px-2 py-1 bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 rounded-lg text-xs font-medium transition" title="ดูภาพทะเบียนรถ"><i class="fa-solid fa-id-card mr-1"></i>ทะเบียน</a>` : ''}
+                        ${item.caneImgUrl ? `<a href="${item.caneImgUrl}" target="_blank" class="px-2 py-1 bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 rounded-lg text-xs font-medium transition" title="ดูภาพอ้อย"><i class="fa-solid fa-image mr-1"></i>อ้อย</a>` : ''}
+                    </div>
+                ` : `<span class="text-xs text-slate-400">ไม่มีภาพ</span>`;
+
+                const safePlate = String(item.licensePlate || '').replace(/'/g, "\\'");
+                const safeCrane = String(item.crane || '').replace(/'/g, "\\'");
+
+                const actionButtons = `
+                    <div class="flex items-center justify-center space-x-1.5">
+                        <button onclick="startEditRecord(${item.rowIndex})" class="px-2.5 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 rounded-lg text-xs font-medium transition" title="แก้ไขข้อมูล">
+                            <i class="fa-solid fa-pen"></i>
+                        </button>
+                        <button onclick="promptDeleteRecord(${item.rowIndex}, '${safePlate}', '${safeCrane}')" class="px-2.5 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-lg text-xs font-medium transition" title="ลบข้อมูล">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
+                `;
+
+                // Desktop Row
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-50/80 transition';
+                tr.innerHTML = `
+                    <td class="py-3.5 px-4 whitespace-nowrap">
+                        <div class="font-medium text-slate-800">${item.date}</div>
+                        <div class="text-xs text-slate-400">${item.time}</div>
+                    </td>
+                    <td class="py-3.5 px-4 font-medium text-emerald-900">${item.crane}</td>
+                    <td class="py-3.5 px-4">
+                        <div class="font-semibold text-slate-800">${item.licensePlate}</div>
+                        <div class="text-xs text-slate-500">${item.vehicleType}</div>
+                    </td>
+                    <td class="py-3.5 px-4 whitespace-nowrap">${caneBadge}</td>
+                    <td class="py-3.5 px-4 text-xs text-slate-600 max-w-[180px]">${item.contaminants}</td>
+                    <td class="py-3.5 px-4 whitespace-nowrap">${trashBadge}</td>
+                    <td class="py-3.5 px-4 text-center whitespace-nowrap">${imgLinks}</td>
+                    <td class="py-3.5 px-4 text-center whitespace-nowrap">${actionButtons}</td>
+                `;
+                tbody.appendChild(tr);
+
+                // Mobile Card
+                const card = document.createElement('div');
+                card.className = 'p-4 space-y-2.5';
+                card.innerHTML = `
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <span class="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">${item.crane}</span>
+                            <h4 class="font-bold text-slate-800 text-base mt-1">${item.licensePlate} <span class="text-xs font-normal text-slate-500">(${item.vehicleType})</span></h4>
+                        </div>
+                        <div class="text-right text-xs text-slate-400">
+                            <div class="font-medium text-slate-600">${item.date}</div>
+                            <div>${item.time}</div>
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap gap-1.5 pt-1">
+                        ${caneBadge}
+                        ${trashBadge}
+                    </div>
+                    <div class="text-xs text-slate-600 bg-slate-50 p-2 rounded-lg">
+                        <b>สิ่งปนเปื้อน:</b> ${item.contaminants}
+                    </div>
+                    <div class="pt-1.5 flex items-center justify-between border-t border-slate-100">
+                        <div>${imgLinks}</div>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="startEditRecord(${item.rowIndex})" class="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 rounded-lg text-xs font-medium transition">
+                                <i class="fa-solid fa-pen mr-1"></i>แก้ไข
+                            </button>
+                            <button onclick="promptDeleteRecord(${item.rowIndex}, '${safePlate}', '${safeCrane}')" class="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-lg text-xs font-medium transition">
+                                <i class="fa-solid fa-trash-can mr-1"></i>ลบ
+                            </button>
+                        </div>
+                    </div>
+                `;
+                mobileBody.appendChild(card);
+            });
+        }
+
+        // UI Modals & Helpers
+        function showLoading(text) {
+            document.getElementById('loadingText').textContent = text;
+            document.getElementById('loadingOverlay').classList.remove('hidden');
+        }
+        function hideLoading() {
+            document.getElementById('loadingOverlay').classList.add('hidden');
+        }
+
+        function showMessage(type, title, message) {
+            const modal = document.getElementById('messageModal');
+            const iconDiv = document.getElementById('modalIcon');
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalMessage').textContent = message;
+
+            if (type === 'success') {
+                iconDiv.className = 'w-14 h-14 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto mb-3 text-2xl';
+                iconDiv.innerHTML = '<i class="fa-solid fa-check"></i>';
+            } else if (type === 'warning') {
+                iconDiv.className = 'w-14 h-14 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center mx-auto mb-3 text-2xl';
+                iconDiv.innerHTML = '<i class="fa-solid fa-exclamation"></i>';
+            } else {
+                iconDiv.className = 'w-14 h-14 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto mb-3 text-2xl';
+                iconDiv.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+            }
+            modal.classList.remove('hidden');
+        }
+        function closeMessageModal() {
+            document.getElementById('messageModal').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>

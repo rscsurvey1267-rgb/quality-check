@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบตรวจสอบคุณภาพอ้อยในสถานีขนถ่าย 40 เครน (2569/70)</title>
+    <title>ระบบตรวจสอบคุณภาพอ้อยในสถานีขนถ่าย (2569/70)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -47,8 +47,8 @@
                     <i class="fa-solid fa-seedling text-2xl text-lime-300"></i>
                 </div>
                 <div>
-                    <h1 class="text-base sm:text-lg font-bold leading-tight">ตรวจสอบคุณภาพอ้อย 40 เครน</h1>
-                    <p class="text-xs text-emerald-100">ฤดูหีบ 2569/70 • สุ่มตรวจก่อนยกขึ้นรถขนถ่าย</p>
+                    <h1 class="text-base sm:text-lg font-bold leading-tight">ตรวจสอบคุณภาพอ้อย</h1>
+                    <p class="text-xs text-emerald-100">ฤดูหีบ 2569/70</p>
                 </div>
             </div>
             
@@ -79,7 +79,7 @@
                 <div id="form-header-bar" class="bg-emerald-50/70 border-b border-slate-100 px-5 py-4 flex items-center justify-between">
                     <h2 id="form-title" class="font-semibold text-emerald-900 flex items-center text-base sm:text-lg">
                         <span class="w-2 h-6 bg-emerald-600 rounded-full mr-2.5"></span>
-                        แบบฟอร์มสุ่มตรวจคุณภาพอ้อย
+                        แบบฟอร์มตรวจคุณภาพอ้อย
                     </h2>
                     <div class="flex items-center space-x-2">
                         <button type="button" id="btnCancelEdit" onclick="cancelEditMode()" class="hidden text-xs bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1 rounded-full font-medium transition">
@@ -359,38 +359,55 @@
         <section id="section-dashboard" class="hidden space-y-5">
             
             <!-- Filter Bar -->
-            <div class="bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-slate-200/80">
-                <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 flex-1">
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">กรองตามสถานี (เครน)</label>
-                            <select id="filterCrane" onchange="applyFilters()"
-                                class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
-                                <option value="ALL">แสดงทุกสถานี (ทั้ง 40 เครน)</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">เลือกวันที่จากปฏิทิน (ค.ศ.)</label>
-                            <div class="flex items-center space-x-2">
-                                <input type="date" id="filterDatePicker" onchange="applyFilters()"
-                                    class="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
-                                <button type="button" onclick="setFilterToday()" class="px-3 py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-semibold whitespace-nowrap transition" title="แสดงข้อมูลวันนี้">
-                                    วันนี้
-                                </button>
-                                <button type="button" onclick="clearDateFilter()" class="px-3 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-medium whitespace-nowrap transition" title="แสดงทุกวันที่">
-                                    ทั้งหมด
-                                </button>
-                            </div>
+            <div class="bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-slate-200/80 space-y-3.5">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">กรองตามสถานี (เครน)</label>
+                        <select id="filterCrane" onchange="applyFilters()"
+                            class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+                            <option value="ALL">แสดงทุกสถานี</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">ประเภทอ้อย</label>
+                        <select id="filterCaneType" onchange="applyFilters()"
+                            class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+                            <option value="ALL">ทุกประเภทอ้อย</option>
+                            <option value="อ้อยสด">อ้อยสด</option>
+                            <option value="อ้อยที่ถูกเผา">อ้อยที่ถูกเผา</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">สิ่งปนเปื้อน</label>
+                        <select id="filterContaminants" onchange="applyFilters()"
+                            class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+                            <option value="ALL">ทุกสถานะสิ่งปนเปื้อน</option>
+                            <option value="คุณภาพดี">คุณภาพดี</option>
+                            <option value="ยอดยาว/กาบใบ">ยอดยาว/กาบใบ</option>
+                            <option value="ปนเปื้อน (ราก/แขนง, กรวด หิน ดิน ทราย)">ปนเปื้อนหนัก (ราก/แขนง, ดิน ทราย)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">เลือกวันที่จากปฏิทิน (ค.ศ.)</label>
+                        <div class="flex items-center space-x-1.5">
+                            <input type="date" id="filterDatePicker" onchange="applyFilters()"
+                                class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+                            <button type="button" onclick="setFilterToday()" class="px-2.5 py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-semibold whitespace-nowrap transition" title="แสดงข้อมูลวันนี้">
+                                วันนี้
+                            </button>
+                            <button type="button" onclick="clearDateFilter()" class="px-2.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-medium whitespace-nowrap transition" title="แสดงทุกวันที่">
+                                ทั้งหมด
+                            </button>
                         </div>
                     </div>
-                    <div class="flex items-center space-x-2">
-                        <button onclick="resetFilters()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-medium transition">
-                            ค่าเริ่มต้น (วันนี้)
-                        </button>
-                        <button onclick="fetchRecords()" class="px-4 py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-xl text-sm font-medium transition flex items-center">
-                            <i class="fa-solid fa-rotate mr-1.5"></i> รีเฟรช
-                        </button>
-                    </div>
+                </div>
+                <div class="flex items-center justify-end space-x-2 pt-1 border-t border-slate-100">
+                    <button onclick="resetFilters()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs sm:text-sm font-medium transition">
+                        ล้างตัวกรอง (วันนี้)
+                    </button>
+                    <button onclick="fetchRecords()" class="px-4 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-xl text-xs sm:text-sm font-medium transition flex items-center">
+                        <i class="fa-solid fa-rotate mr-1.5"></i> รีเฟรชข้อมูล
+                    </button>
                 </div>
             </div>
 
@@ -967,7 +984,7 @@
 
             // คืนค่า UI เป็นโหมดบันทึกใหม่
             document.getElementById('form-header-bar').className = 'bg-emerald-50/70 border-b border-slate-100 px-5 py-4 flex items-center justify-between';
-            document.getElementById('form-title').innerHTML = '<span class="w-2 h-6 bg-emerald-600 rounded-full mr-2.5"></span>แบบฟอร์มสุ่มตรวจคุณภาพอ้อย';
+            document.getElementById('form-title').innerHTML = '<span class="w-2 h-6 bg-emerald-600 rounded-full mr-2.5"></span>แบบฟอร์มตรวจคุณภาพอ้อย';
             document.getElementById('btnCancelEdit').classList.add('hidden');
             document.getElementById('btnCancelEditBottom').classList.add('hidden');
             document.getElementById('btnSubmitText').textContent = 'บันทึกข้อมูลการตรวจสอบ';
@@ -1060,6 +1077,8 @@
         // กรองข้อมูลและคำนวณสถิติ
         function applyFilters() {
             const selectedCrane = document.getElementById('filterCrane').value;
+            const selectedCaneType = document.getElementById('filterCaneType').value;
+            const selectedContaminants = document.getElementById('filterContaminants').value;
             const pickerVal = document.getElementById('filterDatePicker').value;
             const targetADDate = formatPickerToADShort(pickerVal);
             const targetBEDate = formatPickerToBEShort(pickerVal);
@@ -1074,9 +1093,11 @@
 
             const filtered = allRecords.filter(item => {
                 const matchCrane = (selectedCrane === 'ALL') || (item.crane === selectedCrane);
+                const matchCaneType = (selectedCaneType === 'ALL') || (item.caneType === selectedCaneType);
+                const matchContaminants = (selectedContaminants === 'ALL') || (item.contaminants === selectedContaminants);
                 const itemDateStr = String(item.date).trim();
                 const matchDate = (!targetADDate) || (itemDateStr === targetADDate) || (itemDateStr === targetBEDate);
-                return matchCrane && matchDate;
+                return matchCrane && matchCaneType && matchContaminants && matchDate;
             });
 
             renderStats(filtered);
@@ -1085,7 +1106,20 @@
 
         function resetFilters() {
             document.getElementById('filterCrane').value = 'ALL';
+            document.getElementById('filterCaneType').value = 'ALL';
+            document.getElementById('filterContaminants').value = 'ALL';
             setFilterToday(true);
+        }
+
+        // แปลงลิงก์ Google Drive ให้อยู่ในรูปแบบแสดงรูปภาพได้โดยตรง
+        function getDriveThumbnailUrl(url) {
+            if (!url) return '';
+            const str = String(url).trim();
+            const match = str.match(/\/d\/([a-zA-Z0-9_-]+)/) || str.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+            if (match && match[1]) {
+                return `https://drive.google.com/thumbnail?id=${match[1]}&sz=w400`;
+            }
+            return str;
         }
 
         // แสดงผลตัวเลข KPI
@@ -1135,10 +1169,23 @@
                     ? `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-teal-50 text-teal-700 border border-teal-200">≤ 3% ปกติ</span>`
                     : `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-700 border border-red-200">> 3% เกินมาตรฐาน</span>`;
 
+                const plateThumb = getDriveThumbnailUrl(item.plateImgUrl);
+                const caneThumb = getDriveThumbnailUrl(item.caneImgUrl);
+
                 const imgLinks = (item.plateImgUrl || item.caneImgUrl) ? `
-                    <div class="flex items-center justify-center space-x-1.5">
-                        ${item.plateImgUrl ? `<a href="${item.plateImgUrl}" target="_blank" class="px-2 py-1 bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 rounded-lg text-xs font-medium transition" title="ดูภาพทะเบียนรถ"><i class="fa-solid fa-id-card mr-1"></i>ทะเบียน</a>` : ''}
-                        ${item.caneImgUrl ? `<a href="${item.caneImgUrl}" target="_blank" class="px-2 py-1 bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 rounded-lg text-xs font-medium transition" title="ดูภาพอ้อย"><i class="fa-solid fa-image mr-1"></i>อ้อย</a>` : ''}
+                    <div class="flex items-center justify-center gap-2">
+                        ${item.plateImgUrl ? `
+                            <a href="${item.plateImgUrl}" target="_blank" class="group relative block rounded-lg overflow-hidden border border-slate-200 shadow-sm bg-slate-100 flex-shrink-0" style="width: 4cm; height: 3cm;" title="คลิกเพื่อดูภาพทะเบียนรถขนาดเต็ม">
+                                <img src="${plateThumb}" alt="ภาพทะเบียนรถ" class="w-full h-full object-cover group-hover:scale-105 transition duration-200" onerror="this.src='https://placehold.co/160x120/e2e8f0/475569?text=ทะเบียนรถ'">
+                                <span class="absolute bottom-1 left-1 bg-black/65 text-white text-[10px] px-1.5 py-0.5 rounded">ทะเบียน</span>
+                            </a>
+                        ` : ''}
+                        ${item.caneImgUrl ? `
+                            <a href="${item.caneImgUrl}" target="_blank" class="group relative block rounded-lg overflow-hidden border border-slate-200 shadow-sm bg-slate-100 flex-shrink-0" style="width: 4cm; height: 3cm;" title="คลิกเพื่อดูภาพอ้อยขนาดเต็ม">
+                                <img src="${caneThumb}" alt="ภาพอ้อย" class="w-full h-full object-cover group-hover:scale-105 transition duration-200" onerror="this.src='https://placehold.co/160x120/e2e8f0/475569?text=ภาพอ้อย'">
+                                <span class="absolute bottom-1 left-1 bg-black/65 text-white text-[10px] px-1.5 py-0.5 rounded">ภาพอ้อย</span>
+                            </a>
+                        ` : ''}
                     </div>
                 ` : `<span class="text-xs text-slate-400">ไม่มีภาพ</span>`;
 
@@ -1198,16 +1245,16 @@
                     <div class="text-xs text-slate-600 bg-slate-50 p-2 rounded-lg">
                         <b>สิ่งปนเปื้อน:</b> ${item.contaminants}
                     </div>
-                    <div class="pt-1.5 flex items-center justify-between border-t border-slate-100">
-                        <div>${imgLinks}</div>
-                        <div class="flex items-center space-x-2">
-                            <button onclick="startEditRecord(${item.rowIndex})" class="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 rounded-lg text-xs font-medium transition">
-                                <i class="fa-solid fa-pen mr-1"></i>แก้ไข
-                            </button>
-                            <button onclick="promptDeleteRecord(${item.rowIndex}, '${safePlate}', '${safeCrane}')" class="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-lg text-xs font-medium transition">
-                                <i class="fa-solid fa-trash-can mr-1"></i>ลบ
-                            </button>
-                        </div>
+                    <div class="pt-1 overflow-x-auto">
+                        ${imgLinks}
+                    </div>
+                    <div class="pt-2 flex items-center justify-end space-x-2 border-t border-slate-100">
+                        <button onclick="startEditRecord(${item.rowIndex})" class="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 rounded-lg text-xs font-medium transition">
+                            <i class="fa-solid fa-pen mr-1"></i>แก้ไข
+                        </button>
+                        <button onclick="promptDeleteRecord(${item.rowIndex}, '${safePlate}', '${safeCrane}')" class="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-lg text-xs font-medium transition">
+                            <i class="fa-solid fa-trash-can mr-1"></i>ลบ
+                        </button>
                     </div>
                 `;
                 mobileBody.appendChild(card);
